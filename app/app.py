@@ -21,7 +21,7 @@ def index_post():
     endpoint = os.environ['ENDPOINT']
     location = os.environ['LOCATION']
 
-    print(key,location)
+    #print(key,location)
     # Indicate that we want to translate and the API version (3.0) and the target language
     path = '/translate?api-version=3.0'
     # Add the target language parameter
@@ -39,14 +39,14 @@ def index_post():
 
     # Create the body of the request with the text to be translated
     body = [{ 'text': original_text }]
-    print(constructed_url)
+    #print(constructed_url)
 
     # Make the call using post
     translator_request = requests.post(constructed_url, headers=headers, json=body)
     # Retrieve the JSON response
     translator_response = translator_request.json()
     # Retrieve the translation
-    print(translator_response)
+    #print(translator_response)
     translated_text = translator_response[0]['translations'][0]['text']
 
     # Call render template, passing the translated text,
