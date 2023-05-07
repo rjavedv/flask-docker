@@ -1,4 +1,5 @@
 import requests, os, uuid, json
+import openai
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -6,11 +7,24 @@ from flask import Flask, redirect, url_for, request, render_template, session
 
 app = Flask(__name__)
 
+gorgkey = os.getenv('OAIORG')
+gapikey = os.getenv('OAIKEY')
+gmodel="gpt-3.5-turbo"
+gsystem="You are a general purpose AI assistant."
+gresponse = " "
+
+openai.api_key = gapikey
+messages = [{"role": "system", "content": gsystem}]
+
 @app.route('/', methods=['GET'])
 def index():
 	return render_template('index.html')
 
-@app.route('/', methods=['POST'])
+@app.route('/trans', methods=['GET'])
+def tr_index():
+	return render_template('tr_index.html')
+
+@app.route('/trans', methods=['POST'])
 def index_post():
     # Read the values from the form
     original_text = request.form['text']
@@ -57,6 +71,39 @@ def index_post():
         original_text=original_text,
         target_language=target_language
     )
+
+@app.route('/openai', methods=['GET'])
+def oi_index():
+	global gresponse
+	global messages
+	
+	gresponse = " "
+	messages.clear()
+	messages.append({"role": "system", "content": gsystem})
+	return render_template('oi_index.html',
+			                systemtemplate=gsystem)
+
+@app.route('/openai', methods=['POST'])
+def oi_index_post():
+	global messages
+	global gresponse
+
+	temp_str = request.form['reqtext']
+	if temp_str:
+		messages.append({"role": "user", "content": temp_str})
+		#print(messages)
+		lresponse = openai.ChatCompletion.create(model=gmodel, messages=messages)
+		system_message = lresponse["choices"][0]["message"]
+		messages.append(system_message)
+		chat_transcript = ""
+		for message in messages:
+			if message['role'] != 'system':
+				chat_transcript += message['role'] + ": " + message['content'] + "\n\n"
+
+		#gresponse = chat_transcript
+		return render_template('oi_index.html',
+			                systemtemplate=gsystem,
+			                sresponse=chat_transcript)	
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=8000)
